@@ -1,89 +1,115 @@
-"use client";
-import { Category, Product } from "@/sanity.types";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { Button } from "./ui/button";
-import { client } from "@/sanity/lib/client";
-import { AnimatePresence, motion } from "motion/react";
-import { Loader2 } from "lucide-react";
-import NoProductAvailable from "./NoProductAvailable";
-import ProductCard from "./ProductCard";
-interface Props {
-  categories: Category[];
-  slug: string;
-}
 
-const CategoryProducts = ({ categories, slug }: Props) => {
-  const [currentSlug, setCurrentSlug] = useState(slug);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const handleCategoryChange = (newSlug: string) => {
-    if (newSlug === currentSlug) return; // Prevent unnecessary updates
-    setCurrentSlug(newSlug);
-    router.push(`/category/${newSlug}`, { scroll: false }); // Update URL without
-  };
+import { Product } from "@/sanity.types";
+import { urlFor } from "@/sanity/lib/image";
+import Image from "next/image";
+import React from "react";
+import Link from "next/link";
+import { StarIcon } from "@sanity/icons";
+import { Flame } from "lucide-react";
+import PriceView from "./PriceView";
+import Title from "./Title";
+import ProductSideMenu from "./ProductSideMenu";
+import AddToCartButton from "./AddToCartButton";
 
-  const fetchProducts = async (categorySlug: string) => {
-    setLoading(true);
-    try {
-      const query = `
-        *[_type == 'product' && references(*[_type == "category" && slug.current == $categorySlug]._id)] | order(name asc){
-        ...,"categories": categories[]->title}
-      `;
-      const data = await client.fetch(query, { categorySlug });
-      setProducts(data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchProducts(currentSlug);
-  }, [router]);
+const ProductCard = ({ product }: { product: Product }) => {
+  const inStock = (product?.stock ?? 0) > 0;
 
   return (
-    <div className="py-5 flex flex-col md:flex-row items-start gap-5">
-      <div className="flex flex-col md:min-w-40 border">
-        {categories?.map((item) => (
-          <Button
-            onClick={() => handleCategoryChange(item?.slug?.current as string)}
-            key={item?._id}
-            className={`bg-transparent border-0 p-0  rounded-none text-darkColor shadow-none hover:bg-shop_orange hover:text-white font-semibold hoverEffect border-b last:border-b-0 transition-colors capitalize ${item?.slug?.current === currentSlug && "bg-shop_orange text-white border-shop_orange"}`}
+    <article className="group overflow-hidden rounded-xl border border-[#292720]/10 bg-white text-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#B65230]/30 hover:shadow-[0_12px_32px_rgba(41,39,32,0.08)]">
+      <div className="relative overflow-hidden bg-[#F6F0E7]">
+        {product?.images?.[0] && (
+          <Link
+            href={`/product/${product?.slug?.current}`}
+            aria-label={`View ${product?.name}`}
+            className="block"
           >
-            <p className="w-full text-left px-2">{item?.title}</p>
-          </Button>
-        ))}
-      </div>
-      <div className="flex-1">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-10 min-h-80 space-y-4 text-center bg-gray-100 rounded-lg w-full">
-            <div className="flex items-center space-x-2 text-blue-600">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Product is loading...</span>
-            </div>
-          </div>
-        ) : products?.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
-            {products?.map((product: Product) => (
-              <AnimatePresence key={product._id}>
-                <motion.div>
-                  <ProductCard product={product} />
-                </motion.div>
-              </AnimatePresence>
-            ))}
-          </div>
+            <Image
+              src={urlFor(product.images[0]).url()}
+              alt={product?.name || "Product image"}
+              width={500}
+              height={500}
+              className={`h-52 w-full object-contain p-4 transition-transform duration-500 ease-out sm:h-60 ${
+                inStock ? "group-hover:scale-[1.04]" : "opacity-50"
+              }`}
+            />
+          </Link>
+        )}
+
+        <ProductSideMenu product={product} />
+
+        {product?.status === "sale" ? (
+          <span className="absolute left-3 top-3 rounded-full bg-[#B65230] px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">
+            On sale
+          </span>
         ) : (
-          <NoProductAvailable
-            selectedTab={currentSlug}
-            className="mt-0 w-full"
-          />
+          <Link
+            href="/deal"
+            aria-label="Explore deals"
+            className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-[#292720]/10 bg-white/90 text-[#B65230] transition-colors duration-200 hover:bg-[#B65230] hover:text-white"
+          >
+            <Flame size={16} />
+          </Link>
         )}
       </div>
-    </div>
+
+      <div className="flex flex-col gap-2.5 p-3.5 sm:p-4">
+        {product?.categories && (
+          <p className="line-clamp-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#B65230]">
+            {product.categories.join(", ")}
+          </p>
+        )}
+
+        <Link
+          href={`/product/${product?.slug?.current}`}
+          className="text-[#292720] transition-colors duration-200 hover:text-[#B65230]"
+        >
+          <Title className="line-clamp-2 text-sm font-semibold leading-5">
+            {product?.name}
+          </Title>
+        </Link>
+
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center">
+            {[...Array(5)].map((_, index) => (
+              <StarIcon
+                key={index}
+                className={`h-3.5 w-3.5 ${
+                  index < 4 ? "text-[#B65230]" : "text-[#D7CFC5]"
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-[11px] text-[#81776B]">5 Reviews</p>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              inStock ? "bg-emerald-600" : "bg-red-500"
+            }`}
+          />
+          <span className="text-[#6D665D]">
+            {inStock ? `${product?.stock} in stock` : "Currently unavailable"}
+          </span>
+        </div>
+
+        <div className="mt-1 border-t border-[#292720]/10 pt-3">
+          <PriceView
+            price={product?.price}
+            discount={product?.discount}
+            className="text-sm"
+          />
+
+          <div className="mt-3">
+            <AddToCartButton
+              product={product}
+              className="w-full rounded-full"
+            />
+          </div>
+        </div>
+      </div>
+    </article>
   );
 };
 
-export default CategoryProducts;
+export default ProductCard;

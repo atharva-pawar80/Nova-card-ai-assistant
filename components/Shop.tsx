@@ -50,11 +50,17 @@ const Shop = ({ categories, brands }: Props) => {
       }
     `;
       const data = await client.fetch(
-        query,
-        { selectedCategory, selectedBrand, minPrice, maxPrice },
-        { next: { revalidate: 0 } }
-      );
-      setProducts(data);
+  query,
+  { selectedCategory, selectedBrand, minPrice, maxPrice },
+  { next: { revalidate: 0 } }
+);
+
+// DEBUG: Check what Sanity returns
+console.log("Sanity products:", data);
+console.log("Selected category:", selectedCategory);
+console.log("Selected brand:", selectedBrand);
+
+setProducts(data);
     } catch (error) {
       console.log("Shop product fetching Error", error);
     } finally {

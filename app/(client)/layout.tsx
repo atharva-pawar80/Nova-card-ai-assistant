@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import AIChatWidget from "@/components/AIChatWidget";
 import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
@@ -18,11 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex min-h-screen flex-col">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
       </div>
+
+      <AIChatWidget />
     </ClerkProvider>
   );
 }
