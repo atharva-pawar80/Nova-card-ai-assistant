@@ -1,4 +1,3 @@
-
 type ProductForEmbedding = {
   name: string;
   description?: string | null;
@@ -22,5 +21,6 @@ export function buildProductText(
     product.variant ? `Type: ${product.variant}` : null,
   ]
     .filter(Boolean)
+    .map((part) => part!.replace(/\s+/g, " ").trim().replace(/[.!?]+$/, ""))
     .join(". ");
 }
