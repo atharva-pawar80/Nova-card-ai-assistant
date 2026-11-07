@@ -4,16 +4,18 @@ import { client } from "@/sanity/lib/client";
 export async function GET() {
   try {
     const query = `*[_type == "product"] {
-      _id,
-      name,
-      price,
-      discount,
-      description,
-      stock,
-      variant,
-      status,
-      isFeatured
-    }`;
+  _id,
+  name,
+  brand,
+  categories,
+  price,
+  discount,
+  description,
+  stock,
+  variant,
+  status,
+  isFeatured
+}`;
 
     const products = await client.fetch(query);
 
