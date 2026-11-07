@@ -34,6 +34,27 @@ export const productType = defineType({
       title: "Description",
       type: "string",
     }),
+    
+    defineField({
+      name: "embedding",
+      title: "Product Embedding",
+      type: "array",
+      of: [{ type: "number" }],
+      hidden: true,
+    }),
+    defineField({
+      name: "embeddingModel",
+      title: "Embedding Model",
+      type: "string",
+      hidden: true,
+    }),
+    defineField({
+      name: "embeddingUpdatedAt",
+      title: "Embedding Updated At",
+      type: "datetime",
+      hidden: true,
+    }),
+
     defineField({
       name: "price",
       title: "Price",
